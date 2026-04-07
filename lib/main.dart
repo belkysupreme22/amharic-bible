@@ -6,17 +6,17 @@ import 'screens/books_Screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/bookmarks_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/devotional_screen.dart';
+import 'screens/splash_screen.dart';
 import 'utils/theme_provider.dart';
 import 'services/notification_service.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().init();
+  // Notification and Theme initialization moved to SplashScreen
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()..loadPreferences()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()), // Initialization handle in SplashScreen
       ],
       child: const MyApp(),
     ),
@@ -36,8 +36,9 @@ class MyApp extends StatelessWidget {
       themeAnimationDuration: const Duration(milliseconds: 600),
       themeAnimationCurve: Curves.easeInOutCubic,
       theme: themeProvider.currentTheme,
-      home: const MainScreen(),
+      home: const SplashScreen(),
       routes: {
+        '/main': (context) => const MainScreen(),
         '/settings': (context) => const SettingsScreen(),
       },
     );

@@ -1,6 +1,11 @@
+import 'dart:math'; // Added for random image
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:share_plus/share_plus.dart'; // Added for sharing journals
+import 'package:screenshot/screenshot.dart'; // Added for image share
+import 'package:path_provider/path_provider.dart'; // Added for temp storage
+import 'dart:io'; // Added for file handling
 
 class SpiritualJournalScreen extends StatefulWidget {
   final String verseReference;
@@ -18,6 +23,7 @@ class _SpiritualJournalScreenState extends State<SpiritualJournalScreen> {
   final TextEditingController _controller = TextEditingController();
   bool _isSaving = false;
   List<Map<String, String>> _history = [];
+  final ScreenshotController _screenshotController = ScreenshotController();
 
   @override
   void initState() {
@@ -27,12 +33,12 @@ class _SpiritualJournalScreenState extends State<SpiritualJournalScreen> {
   }
 
   Future<void> _loadTodayJournal() async {
-    final prefs = await SharedPreferences.getInstance();
-    final key = 'journal_note_${_dateKey(DateTime.now())}';
-    final saved = prefs.getString(key) ?? '';
-    _controller.text = saved;
+    // User requested input to reset on open.
+    // We intentionally do NOT load any saved text into the controller here.
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _controller.clear(); 
+      });
     }
   }
 
@@ -60,6 +66,8 @@ class _SpiritualJournalScreenState extends State<SpiritualJournalScreen> {
   }
 
   Future<void> _saveJournal() async {
+    if (_controller.text.trim().isEmpty) return;
+    
     setState(() {
       _isSaving = true;
     });
@@ -69,25 +77,205 @@ class _SpiritualJournalScreenState extends State<SpiritualJournalScreen> {
     final taskKey = 'daily_${dateKey}_journal';
 
     await prefs.setString(noteKey, _controller.text.trim());
-    await prefs.setBool(taskKey, _controller.text.trim().isNotEmpty);
+    await prefs.setBool(taskKey, true);
 
     await _loadHistory(); // Refresh history
 
     if (!mounted) return;
     setState(() {
       _isSaving = false;
+      _controller.clear(); // Reset after save too as it's a "fresh" start preference
     });
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('ጆርናሉ ተቀምጧል')),
     );
-    // Remove pop so user can see it saved and view history
   }
 
   String _dateKey(DateTime date) {
     final month = date.month.toString().padLeft(2, '0');
     final day = date.day.toString().padLeft(2, '0');
     return '${date.year}-$month-$day';
+  }
+
+  void _showJournalDetail(String date, String note) {
+    final theme = Theme.of(context);
+    // User requested images with prefix 'reading'
+    final images = [
+      'images/reading.jpg',
+      'images/reading2.png',
+      'images/reading3.jpg',
+      'images/reading4.jpg',
+      'images/reading5.jpg',
+    ];
+    final randomImage = images[Random().nextInt(images.length)];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Stack(
+          children: [
+            // Shared Area (Screenshot)
+            Screenshot(
+              controller: _screenshotController,
+              child: Stack(
+                children: [
+                  // Background Image with Gradient Overlay
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                    child: Stack(
+                      children: [
+                        Image.asset(
+                          randomImage,
+                          width: double.infinity,
+                          height: MediaQuery.of(context).size.height * 0.85,
+                          fit: BoxFit.cover,
+                        ),
+                        Container(
+                          height: MediaQuery.of(context).size.height * 0.85,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withOpacity(0.3),
+                                theme.scaffoldBackgroundColor.withOpacity(0.9),
+                                theme.scaffoldBackgroundColor,
+                              ],
+                              stops: const [0.0, 0.4, 0.8],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Content for Screenshot
+                  SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 48), // Padding for modal handle and buttons
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'መንፈሳዊ ጆርናል',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                date,
+                                style: theme.textTheme.headlineMedium?.copyWith(fontSize: 24),
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                note,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontFamily: 'Selam',
+                                  fontSize: 18,
+                                  height: 1.8,
+                                ),
+                              ),
+                              const SizedBox(height: 40),
+                              // Watermark for share
+                              Row(
+                                children: [
+                                  Icon(LucideIcons.bookOpen, size: 14, color: theme.colorScheme.primary.withOpacity(0.5)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'አማርኛ መጽሐፍ ቅዱስ ጓደኛ',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: theme.colorScheme.onSurface.withOpacity(0.3),
+                                      fontFamily: 'Loga',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Non-screenshot buttons (X and Share stay top right as UI, not in share image)
+            Positioned(
+              top: 12,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+            // Header with Share/Close buttons (Visible UI)
+            Positioned(
+              top: 32,
+              left: 24,
+              right: 24,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(), // Spacer
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(LucideIcons.share2, color: Colors.white),
+                        onPressed: () => _shareJournalImage(date, note),
+                      ),
+                      IconButton(
+                        icon: const Icon(LucideIcons.x, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _shareJournalImage(String date, String note) async {
+    try {
+      final image = await _screenshotController.capture();
+      if (image != null) {
+        final directory = await getTemporaryDirectory();
+        final imagePath = await File('${directory.path}/journal_share.png').create();
+        await imagePath.writeAsBytes(image);
+
+        await Share.shareXFiles(
+          [XFile(imagePath.path)],
+          text: 'መንፈሳዊ ጆርናል - $date\n\nበአማርኛ መጽሐፍ ቅዱስ ጓደኛ የተላከ',
+        );
+      }
+    } catch (e) {
+      // Fallback to text share if image capture fails
+      Share.share('መንፈሳዊ ጆርናል ($date):\n\n$note\n\n- በአማርኛ መጽሐፍ ቅዱስ ጓደኛ የተላከ');
+    }
   }
 
   @override
@@ -175,10 +363,14 @@ class _SpiritualJournalScreenState extends State<SpiritualJournalScreen> {
                 controller: _controller,
                 maxLines: null,
                 expands: true,
-                style: theme.textTheme.bodyLarge?.copyWith(height: 1.6),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontFamily: 'Selam',
+                  height: 1.6,
+                ),
                 decoration: InputDecoration(
                   hintText: 'እግዚአብሔር ዛሬ ምን እያስተማረዎት እንደሆነ ይጻፉ...',
                   hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                    fontFamily: 'Selam',
                     color: theme.colorScheme.onSurface.withOpacity(0.4),
                   ),
                   border: InputBorder.none,
@@ -269,36 +461,44 @@ class _SpiritualJournalScreenState extends State<SpiritualJournalScreen> {
               );
             }
           },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: theme.colorScheme.primary.withOpacity(0.1)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(LucideIcons.calendar, size: 16, color: theme.colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      dateKey,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+          child: InkWell(
+            onTap: () => _showJournalDetail(dateKey, item['note'] ?? ''),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.1)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(LucideIcons.calendar, size: 16, color: theme.colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        dateKey,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  item['note'] ?? '',
-                  style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
-                ),
-              ],
+                      const Spacer(),
+                      Icon(LucideIcons.chevronRight, size: 16, color: theme.colorScheme.onSurface.withOpacity(0.2)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    item['note'] ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyLarge?.copyWith(height: 1.5, color: theme.colorScheme.onSurface.withOpacity(0.8)),
+                  ),
+                ],
+              ),
             ),
           ),
         );

@@ -81,7 +81,6 @@ class _SearchScreenState extends State<SearchScreen> {
       return _taskCompletionRatio(
         prefs.getBool('daily_${key}_journal') ?? false,
         prefs.getBool('daily_${key}_verse') ?? false,
-        prefs.getBool('daily_${key}_devotional') ?? false,
         prefs.getBool('daily_${key}_prayer') ?? false,
       );
     }).toList();
@@ -97,7 +96,6 @@ class _SearchScreenState extends State<SearchScreen> {
       final ratio = _taskCompletionRatio(
         prefs.getBool('daily_${key}_journal') ?? false,
         prefs.getBool('daily_${key}_verse') ?? false,
-        prefs.getBool('daily_${key}_devotional') ?? false,
         prefs.getBool('daily_${key}_prayer') ?? false,
       );
       if (ratio >= 1) {
@@ -109,9 +107,9 @@ class _SearchScreenState extends State<SearchScreen> {
     return streak;
   }
 
-  double _taskCompletionRatio(bool journal, bool verse, bool devotional, bool prayer) {
-    final done = (journal ? 1 : 0) + (verse ? 1 : 0) + (devotional ? 1 : 0) + (prayer ? 1 : 0);
-    return done / 4;
+  double _taskCompletionRatio(bool journal, bool verse, bool prayer) {
+    final done = (journal ? 1 : 0) + (verse ? 1 : 0) + (prayer ? 1 : 0);
+    return done / 3;
   }
 
   String _dateKey(DateTime date) {
@@ -119,8 +117,8 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   int get _completedTaskCount =>
-      (_journalDone ? 1 : 0) + (_verseDone ? 1 : 0) + (_devotionalDone ? 1 : 0) + (_prayerDone ? 1 : 0);
-  double get _todayProgress => _completedTaskCount / 4;
+      (_journalDone ? 1 : 0) + (_verseDone ? 1 : 0) + (_prayerDone ? 1 : 0);
+  double get _todayProgress => _completedTaskCount / 3;
 
   @override
   Widget build(BuildContext context) {
@@ -165,8 +163,13 @@ class _SearchScreenState extends State<SearchScreen> {
                       subtitle: 'የዛሬውን ቃል ያንብቡ',
                       isDone: _verseDone,
                       icon: LucideIcons.bookOpen,
-                      onTap: () {
+                      onTap: () async {
                         if (_todayVerse != null) {
+                          final prefs = await SharedPreferences.getInstance();
+                          final todayKey = _dateKey(DateTime.now());
+                          await prefs.setBool('daily_${todayKey}_verse', true);
+                          
+                          if (!mounted) return;
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -176,7 +179,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 chapter: _todayVerse!['chapter'],
                               ),
                             ),
-                          );
+                          ).then((_) => _loadDailyState());
                         }
                       },
                     ),
@@ -203,7 +206,14 @@ class _SearchScreenState extends State<SearchScreen> {
                       subtitle: 'ለጥቂት ደቂቃዎች ይጸልዩ',
                       isDone: _prayerDone,
                       icon: LucideIcons.heart,
-                      onTap: () {},
+                      onTap: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        final todayKey = _dateKey(DateTime.now());
+                        final newValue = !_prayerDone;
+                        await prefs.setBool('daily_${todayKey}_prayer', newValue);
+                        setState(() => _prayerDone = newValue);
+                        _loadDailyState(); // Refresh progress
+                      },
                     ),
                   ],
                 ),
@@ -239,7 +249,7 @@ class _ProgressHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  '$count ከ 4 ተግባራት',
+                  '$count ከ 3 ተግባራት',
                   style: theme.textTheme.headlineMedium?.copyWith(fontSize: 22),
                 ),
               ],

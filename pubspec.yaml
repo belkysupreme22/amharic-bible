@@ -19,6 +19,7 @@ dependencies:
   screenshot: ^3.0.0
   flutter_local_notifications: ^21.0.0
   timezone: ^0.11.0
+  flutter_timezone: ^3.0.1
 
 
 dev_dependencies:
@@ -26,11 +27,27 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.14.0
+  flutter_native_splash: ^2.4.7
 
 flutter_icons:
   android: true
   ios: true
   image_path: "images/app_icon.jpg"
+
+flutter_native_splash:
+  color: "#000000"
+  image: "images/splashmain.jpg"
+  android: true
+  ios: true
+  
+  # Android 12+ (Android 14) Support
+  android_12:
+    image: "images/splashmain.jpg"
+    color: "#000000"
+    fullscreen: true
+
+  # Asset management
+  web: false
 
 flutter:
   uses-material-design: true

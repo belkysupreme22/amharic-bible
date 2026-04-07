@@ -11,6 +11,8 @@ import 'search_screen.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'dart:ui'; // Added for Glassmorphism
+import 'dart:math' as math; // Added for random image
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -176,6 +178,20 @@ class _VerseCard extends StatefulWidget {
 class _VerseCardState extends State<_VerseCard> {
   final ScreenshotController _screenshotController = ScreenshotController();
   bool _isSharing = false;
+  late String _currentBkImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentBkImage = [
+      'images/bk1.jpg',
+      'images/bk2.png',
+      'images/bk3.jpg',
+      'images/bk4.jpg',
+      'images/bk5.jpg',
+      'images/bk6.jpg',
+    ][math.Random().nextInt(6)];
+  }
 
   Future<void> _shareVerseImage() async {
     setState(() => _isSharing = true);
@@ -210,64 +226,125 @@ class _VerseCardState extends State<_VerseCard> {
       controller: _screenshotController,
       child: Container(
         width: double.infinity,
-        margin: EdgeInsets.all(_isSharing ? 0 : 0),
-        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: theme.colorScheme.primary.withOpacity(0.2),
-            width: 0.5,
-          ),
           boxShadow: _isSharing ? [] : [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withOpacity(0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Icon(LucideIcons.quote, color: theme.colorScheme.primary, size: 20),
-                const Spacer(),
-                if (!_isSharing) ...[
-                  _isSharing 
-                    ? const SizedBox(width: 40, height: 40, child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(strokeWidth: 2)))
-                    : IconButton(
-                        icon: const Icon(LucideIcons.share2, size: 20),
-                        onPressed: _shareVerseImage,
-                      ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              widget.verseData['text'],
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontFamily: 'Selam',
-                fontSize: 24,
-                height: 1.5,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Text(
-                reference,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                  letterSpacing: 1.2,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            children: [
+              // 1. Background Art
+              Positioned.fill(
+                child: Image.asset(
+                  _currentBkImage,
+                  fit: BoxFit.cover,
                 ),
               ),
-            ),
-          ],
+
+              // 2. Gradient Overlay (Subtle, no blur)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        theme.colorScheme.surface.withOpacity(0.3),
+                        theme.colorScheme.surface.withOpacity(0.7),
+                      ],
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+
+              // 3. Content
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
+                          ),
+                          child: Icon(LucideIcons.quote, color: theme.colorScheme.primary, size: 16),
+                        ),
+                        const Spacer(),
+                        if (!_isSharing) ...[
+                          GestureDetector(
+                            onTap: _shareVerseImage,
+                            child: Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withOpacity(0.15),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
+                              ),
+                              child: Icon(LucideIcons.share2, size: 18, color: theme.colorScheme.primary),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      widget.verseData['text'],
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontFamily: 'Selam',
+                        fontSize: 24,
+                        height: 1.6,
+                        color: theme.colorScheme.primary,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.3),
+                            offset: const Offset(0, 1),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
+                        ),
+                        child: Text(
+                          reference,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.primary,
+                            letterSpacing: 0.5,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

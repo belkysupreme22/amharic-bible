@@ -313,14 +313,8 @@ class _ThemeSelector extends StatelessWidget {
                               Icon(LucideIcons.checkCircle2, color: primaryColor, size: 18),
                           ],
                         ),
-                        Text(
-                          name,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
+                        // Removed theme name text for a cleaner UI
+                        const SizedBox.shrink(),
                       ],
                     ),
                   ),

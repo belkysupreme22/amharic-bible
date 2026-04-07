@@ -102,7 +102,14 @@ class _VerseCardState extends State<VerseCard> {
                             alignment: Alignment.center,
                             children: [
                               Image.asset(
-                                'images/bk${math.Random().nextInt(6) + 1}.jpg',
+                                [
+                                  'images/bk1.jpg',
+                                  'images/bk2.png',
+                                  'images/bk3.jpg',
+                                  'images/bk4.jpg',
+                                  'images/bk5.jpg',
+                                  'images/bk6.jpg',
+                                ][math.Random().nextInt(6)],
                                 height: 220,
                                 width: double.infinity,
                                 fit: BoxFit.cover,

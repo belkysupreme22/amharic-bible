@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:flutter/material.dart';
 
 class NotificationService {
@@ -13,8 +14,8 @@ class NotificationService {
 
   Future<void> init() async {
     tz.initializeTimeZones();
-    // No explicit local set; zonedSchedule uses tz.local which defaults to the system's timezone
-    // once tz.initializeTimeZones() is called.
+    final String timeZoneName = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timeZoneName));
 
     const AndroidInitializationSettings initSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -51,9 +52,17 @@ class NotificationService {
     final androidPlugin = _notificationsPlugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     
-    // Explicitly request permissions for Android 13+
+    // Explicitly request notifications permission for Android 13+
     await androidPlugin?.requestNotificationsPermission();
-    await androidPlugin?.requestExactAlarmsPermission();
+
+    // Android 14+ Exact Alarm handling
+    if (androidPlugin != null) {
+      final bool? canSchedule = await androidPlugin.canScheduleExactNotifications();
+      if (canSchedule == false) {
+        // This will open the system settings page for "Alarms & Reminders"
+        await androidPlugin.requestExactAlarmsPermission();
+      }
+    }
   }
 
   Future<void> scheduleDailyReminder(TimeOfDay time) async {
