@@ -1,0 +1,57 @@
+name: amharic_bible
+description: የአማርኛ መጽሐፍ ቅዱስ መተግበሪያ - Amharic Bible App with premium features.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.2
+  shared_preferences: ^2.3.2
+  provider: ^6.1.2
+  share_plus: ^10.0.3
+  google_fonts: ^6.2.1
+  lucide_icons: ^0.257.0
+  path_provider: ^2.1.5
+  screenshot: ^3.0.0
+  flutter_local_notifications: ^21.0.0
+  timezone: ^0.11.0
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.0
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "images/app_icon.jpg"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - images/
+
+  fonts:
+    - family: Loga
+      fonts:
+        - asset: fonts/Loga_Thin_b6a2232cf0.ttf
+          weight: 100
+        - asset: fonts/Loga_Light_4c025211ef.ttf
+          weight: 300
+        - asset: fonts/Loga_Medium_beed16d159.ttf
+          weight: 500
+    - family: BelaHidase
+      fonts:
+        - asset: fonts/Bela_Hidase_Qedmo_Extra_Bold_fa986f6c22.ttf
+          weight: 700
+    - family: Selam
+      fonts:
+        - asset: fonts/Selam_Regular_a59259475e.otf
+          weight: 400
