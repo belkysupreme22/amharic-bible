@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import '../services/bible_service.dart';
 import '../widgets/app_loading.dart';
 import 'verses_screen.dart';

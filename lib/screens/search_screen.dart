@@ -1,16 +1,11 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../models/search_result.dart';
 import '../services/bible_service.dart';
 import '../widgets/app_loading.dart';
-import '../utils/theme_provider.dart';
 import 'spiritual_journal_screen.dart';
 import 'verses_screen.dart';
-import 'devotional_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -28,7 +23,6 @@ class _SearchScreenState extends State<SearchScreen> {
   
   bool _journalDone = false;
   bool _verseDone = false;
-  bool _devotionalDone = false;
   bool _prayerDone = false;
   int _streakDays = 0;
   List<double> _weekRatios = List<double>.filled(7, 0);
@@ -71,7 +65,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
     _journalDone = prefs.getBool('daily_${todayKey}_journal') ?? false;
     _verseDone = prefs.getBool('daily_${todayKey}_verse') ?? false;
-    _devotionalDone = prefs.getBool('daily_${todayKey}_devotional') ?? false;
     _prayerDone = prefs.getBool('daily_${todayKey}_prayer') ?? false;
 
     final monday = now.subtract(Duration(days: now.weekday - 1));

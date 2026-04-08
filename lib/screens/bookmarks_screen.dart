@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../services/bookmark_service.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/verse_card.dart';
-import '../utils/theme_provider.dart';
 import '../models/bookmark.dart';
 
 class BookmarksScreen extends StatefulWidget {                         

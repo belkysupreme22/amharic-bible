@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../services/bible_service.dart';
-import '../utils/theme_provider.dart';
 import '../widgets/app_loading.dart';
 import 'spiritual_journal_screen.dart';
 import 'search_screen.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'dart:ui'; // Added for Glassmorphism
 import 'dart:math' as math; // Added for random image
 
 class HomeScreen extends StatefulWidget {

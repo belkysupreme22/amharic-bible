@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../utils/theme_provider.dart';
-import '../services/bookmark_service.dart';
 import '../services/notification_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -75,18 +74,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (_reminderEnabled) await NotificationService().scheduleDailyReminder(picked);
   }
 
-  Future<void> _clearBookmarks() async {
-    if (await _confirmAction('ምልክቶችን አጽዳ', 'በሙሉ ማጥፋት ይፈልጋሉ?')) {
-      await BookmarkService().clearAllBookmarks();
-      _showSnack('ምልክቶች ተሰርዘዋል');
-    }
-  }
-
   Future<void> _resetProgress() async {
     if (await _confirmAction('ሂደትን እንደገና ጀምር', 'የንባብ ሂደትን በሙሉ ማጥፋት ይፈልጋሉ?')) {
       final prefs = await SharedPreferences.getInstance();
       final keys = prefs.getKeys().where((k) => k.startsWith('daily_')).toList();
-      for (var key in keys) await prefs.remove(key);
+      for (var key in keys) {
+        await prefs.remove(key);
+      }
       _showSnack('ሂደትዎ ተሰርዟል');
     }
   }
@@ -243,28 +237,23 @@ class _ThemeSelector extends StatelessWidget {
           
           Color bgColor;
           Color primaryColor;
-          String name;
 
           switch (variant) {
             case AppThemeVariant.midnightGold: 
               bgColor = const Color(0xFF100F0D); 
               primaryColor = const Color(0xFFFFC453);
-              name = "Midnight Gold";
               break;
             case AppThemeVariant.royalNavy: 
               bgColor = const Color(0xFF0B101A); 
               primaryColor = const Color(0xFFFFD166);
-              name = "Royal Navy";
               break;
             case AppThemeVariant.deepOnyx: 
               bgColor = const Color(0xFF0D0D0D); 
               primaryColor = const Color(0xFFE5B96E);
-              name = "Deep Onyx";
               break;
             case AppThemeVariant.deepBurgundy: 
               bgColor = const Color(0xFF1A0D0D); 
               primaryColor = const Color(0xFFD4AF37);
-              name = "Deep Burgundy";
               break;
           }
 

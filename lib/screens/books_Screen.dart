@@ -18,8 +18,6 @@ class _BooksScreenState extends State<BooksScreen> {
   List<Book> _filteredBooks = [];
   bool _isLoading = true;
   String? _error;
-  String _searchQuery = '';
-
   @override
   void initState() {
     super.initState();
@@ -50,7 +48,6 @@ class _BooksScreenState extends State<BooksScreen> {
 
   void _filterBooks(String query) {
     setState(() {
-      _searchQuery = query;
       if (query.isEmpty) {
         _filteredBooks = _allBooks;
       } else {

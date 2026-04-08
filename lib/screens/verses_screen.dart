@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../services/bible_service.dart';
 import '../services/bookmark_service.dart';
 import '../widgets/verse_card.dart';
 import '../widgets/app_loading.dart';
-import '../utils/theme_provider.dart';
 import '../models/bookmark.dart';
 
 class VersesScreen extends StatefulWidget {
@@ -92,7 +90,6 @@ class _VersesScreenState extends State<VersesScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
       appBar: AppBar(

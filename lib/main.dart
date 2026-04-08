@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'screens/home_screen.dart';
-import 'screens/books_Screen.dart';
+import 'screens/books_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/bookmarks_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/splash_screen.dart';
 import 'utils/theme_provider.dart';
-import 'services/notification_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
