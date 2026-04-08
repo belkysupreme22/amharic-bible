@@ -90,7 +90,10 @@
 - **State Management**: [Provider](https://pub.dev/packages/provider)
 - **Database**: [Shared Preferences](https://pub.dev/packages/shared_preferences)
 - **Icons**: [Lucide Icons](https://pub.dev/packages/lucide_icons)
-- **Typography**: [Google Fonts](https://pub.dev/packages/google_fonts)
+- **Typography**: [Google Fonts](https://pub.dev/packages/google_fonts) & Custom Fonts:
+  - **Loga**: Main UI headers.
+  - **BelaHidase**: Artistic titles.
+  - **Selam**: Clean body text and verses.
 
 ---
 
