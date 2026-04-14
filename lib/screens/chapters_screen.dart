@@ -116,6 +116,7 @@ class _ChaptersScreenState extends State<ChaptersScreen> {
                                           bookTitle: widget.bookTitle,
                                           bookAbbv: widget.bookAbbv,
                                           chapter: chapter,
+                                          totalChapters: _chapters.length,
                                         ),
                                       ),
                                     );

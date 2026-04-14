@@ -83,7 +83,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
   int _calculateStreak(SharedPreferences prefs, DateTime now) {
     var streak = 0;
-    for (var offset = 0; offset < 365; offset++) {
+    
+    // 1. Calculate maintained streak from yesterday backwards
+    for (var offset = 1; offset < 365; offset++) {
       final day = DateTime(now.year, now.month, now.day).subtract(Duration(days: offset));
       final key = _dateKey(day);
       final ratio = _taskCompletionRatio(
@@ -97,6 +99,18 @@ class _SearchScreenState extends State<SearchScreen> {
         break;
       }
     }
+
+    // 2. Add today if complete
+    final todayKey = _dateKey(now);
+    final todayRatio = _taskCompletionRatio(
+      prefs.getBool('daily_${todayKey}_journal') ?? false,
+      prefs.getBool('daily_${todayKey}_verse') ?? false,
+      prefs.getBool('daily_${todayKey}_prayer') ?? false,
+    );
+    if (todayRatio >= 1) {
+      streak++;
+    }
+
     return streak;
   }
 

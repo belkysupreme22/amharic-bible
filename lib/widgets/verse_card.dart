@@ -257,7 +257,7 @@ class _VerseCardState extends State<VerseCard> {
                 fontFamily: 'Selam',
                 fontSize: fontSize,
                 height: 1.6,
-                color: theme.colorScheme.onSurface.withOpacity(0.9),
+                color: theme.textTheme.bodyLarge?.color ?? theme.colorScheme.onSurface.withOpacity(0.9),
                 letterSpacing: 0.3,
               ),
             ),

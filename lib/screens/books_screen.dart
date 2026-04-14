@@ -65,8 +65,8 @@ class _BooksScreenState extends State<BooksScreen> {
     final theme = Theme.of(context);
 
     // Split filtered books by testament
-    final oldTestamentBooks = _filteredBooks.where((book) => _allBooks.indexOf(book) < 39).toList();
-    final newTestamentBooks = _filteredBooks.where((book) => _allBooks.indexOf(book) >= 39).toList();
+    final oldTestamentBooks = _filteredBooks.where((book) => book.testament == 'OT').toList();
+    final newTestamentBooks = _filteredBooks.where((book) => book.testament == 'NT').toList();
 
     return DefaultTabController(
       length: 2,

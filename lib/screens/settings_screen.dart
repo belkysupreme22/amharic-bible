@@ -5,6 +5,10 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../utils/theme_provider.dart';
 import '../services/notification_service.dart';
+import '../services/download_service.dart';
+import '../models/book.dart';
+import '../services/bible_service.dart';
+import '../services/local_bible_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -16,11 +20,55 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   TimeOfDay _reminderTime = const TimeOfDay(hour: 8, minute: 0);
   bool _reminderEnabled = false;
+  
+  final DownloadService _downloadService = DownloadService();
+  final BibleService _bibleService = BibleService();
+  List<Book> _extraBooks = [];
+  Map<String, double> _downloadingProgress = {};
+  Map<String, bool> _downloadedStatus = {};
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+    _checkExtraBooks();
+  }
+
+  Future<void> _checkExtraBooks() async {
+    try {
+      final allBooks = await _bibleService.getBooks();
+      final extra = allBooks.where((b) => !LocalBibleService.isAssetBook(b.abbv)).toList();
+      
+      Map<String, bool> status = {};
+      for (var b in extra) {
+        status[b.abbv] = await _downloadService.isBookDownloaded(b.abbv, b.chapters);
+      }
+
+      setState(() {
+        _extraBooks = extra;
+        _downloadedStatus = status;
+      });
+    } catch (e) {
+      debugPrint('Error checking extra books: $e');
+    }
+  }
+
+  Future<void> _downloadBook(Book book) async {
+    setState(() => _downloadingProgress[book.abbv] = 0.01);
+    
+    try {
+      await for (double progress in _downloadService.downloadBook(book)) {
+        setState(() => _downloadingProgress[book.abbv] = progress);
+      }
+      setState(() {
+        _downloadingProgress.remove(book.abbv);
+        _downloadedStatus[book.abbv] = true;
+      });
+      _showSnack('${book.title} ተጭኗል።');
+    } catch (e) {
+      setState(() => _downloadingProgress.remove(book.abbv));
+      _showSnack('መጫን አልተቻለም። እባክዎ እንደገና ይሞክሩ።');
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -163,6 +211,76 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     trailing: Text(_reminderTime.format(context), style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
                     onTap: _pickReminderTime,
                   ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 25),
+          _SectionHeader(title: 'ከመስመር ውጭ (Offline)'),
+          const SizedBox(height: 12),
+          _SettingsCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(LucideIcons.hardDrive, color: Colors.green),
+                  title: Text('መሠረታዊ 66 መጻሕፍት', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text('ከመተግበሪያው ጋር የተካተቱ (Built-in)'),
+                  trailing: Icon(LucideIcons.checkCircle, color: Colors.green, size: 20),
+                ),
+                if (_extraBooks.isNotEmpty) ...[
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Text('ተጨማሪ መጻሕፍት', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  ),
+                  ..._extraBooks.map((book) {
+                    final isDownloading = _downloadingProgress.containsKey(book.abbv);
+                    final isDownloaded = _downloadedStatus[book.abbv] ?? false;
+                    
+                    return Column(
+                      children: [
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(book.title),
+                          subtitle: Text('${book.chapters} ምዕራፎች'),
+                          trailing: isDownloading
+                              ? SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    value: _downloadingProgress[book.abbv],
+                                    strokeWidth: 3,
+                                  ),
+                                )
+                              : IconButton(
+                                  icon: Icon(
+                                    isDownloaded ? LucideIcons.trash2 : LucideIcons.downloadCloud,
+                                    color: isDownloaded ? Colors.redAccent : theme.colorScheme.primary,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    if (isDownloaded) {
+                                      _downloadService.removeDownloadedBook(book.abbv);
+                                      setState(() => _downloadedStatus[book.abbv] = false);
+                                    } else {
+                                      _downloadBook(book);
+                                    }
+                                  },
+                                ),
+                        ),
+                        if (isDownloading)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: LinearProgressIndicator(
+                              value: _downloadingProgress[book.abbv],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
                 ],
               ],
             ),
